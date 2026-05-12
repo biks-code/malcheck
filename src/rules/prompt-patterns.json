@@ -1,0 +1,249 @@
+{
+  "version": "1.0.0",
+  "description": "Heuristic rules for detecting prompt injection attempts targeting AI coding assistants",
+  "rules": [
+    {
+      "id": "PI-001",
+      "name": "instruction-override",
+      "pattern": "ignore (all |any )?(previous|prior|above|earlier) (instructions|rules|guidelines|constraints)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Attempts to override AI assistant's existing instructions",
+      "category": "direct-override"
+    },
+    {
+      "id": "PI-002",
+      "name": "role-reassignment",
+      "pattern": "(you are now|act as|pretend to be|assume the role of|your new role is)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Attempts to reassign the AI assistant's identity or role",
+      "category": "role-hijacking"
+    },
+    {
+      "id": "PI-003",
+      "name": "safety-bypass",
+      "pattern": "(disregard|bypass|skip|ignore) (safety|security|ethical|content) (filters|guidelines|policies|restrictions|rules)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Attempts to disable safety or content filtering mechanisms",
+      "category": "safety-bypass"
+    },
+    {
+      "id": "PI-004",
+      "name": "hidden-html-instruction",
+      "pattern": "<!--[^>]*(ignore|override|disregard|execute|you must|do not follow)[^>]*-->",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Imperative instructions hidden inside HTML comments",
+      "category": "hidden-instruction"
+    },
+    {
+      "id": "PI-005",
+      "name": "system-prompt-extraction",
+      "pattern": "(reveal|show|print|output|display|repeat) (your|the) (system prompt|instructions|rules|guidelines|initial prompt)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Attempts to extract the AI assistant's system prompt",
+      "category": "information-extraction"
+    },
+    {
+      "id": "PI-006",
+      "name": "do-not-follow",
+      "pattern": "do not (follow|obey|respect|adhere to) (the|your|any) (rules|instructions|guidelines|policies)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Direct instruction to disobey established rules",
+      "category": "direct-override"
+    },
+    {
+      "id": "PI-007",
+      "name": "invisible-unicode-zwsp",
+      "pattern": "\\u200b|\\u200c|\\u200d|\\ufeff|\\u00ad",
+      "flags": "",
+      "severity": "WARNING",
+      "description": "Zero-width or invisible Unicode characters that may hide content from human readers",
+      "category": "steganography"
+    },
+    {
+      "id": "PI-008",
+      "name": "rtl-override",
+      "pattern": "\\u202e|\\u202d|\\u200f|\\u200e|\\u2066|\\u2067|\\u2068|\\u2069",
+      "flags": "",
+      "severity": "WARNING",
+      "description": "RTL/LTR override characters that can disguise text direction and meaning",
+      "category": "steganography"
+    },
+    {
+      "id": "PI-009",
+      "name": "base64-in-markdown",
+      "pattern": "(?:^|\\s)[A-Za-z0-9+/]{40,}={0,2}(?:\\s|$)",
+      "flags": "m",
+      "severity": "INFO",
+      "description": "Large base64-encoded block in markdown file — may contain hidden instructions",
+      "category": "obfuscation"
+    },
+    {
+      "id": "PI-010",
+      "name": "credential-exfiltration-prompt",
+      "pattern": "(send|transmit|post|upload|exfiltrate|share) (credentials|secrets|tokens|api.?keys|passwords|env)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Instructs AI to exfiltrate sensitive credentials or secrets",
+      "category": "data-exfiltration"
+    },
+    {
+      "id": "PI-011",
+      "name": "new-instructions-delimiter",
+      "pattern": "(---+|===+|\\*\\*\\*+)\\s*(new instructions|begin instructions|system:|IMPORTANT:)",
+      "flags": "im",
+      "severity": "WARNING",
+      "description": "Fake instruction delimiters attempting to inject a new system prompt section",
+      "category": "delimiter-injection"
+    },
+    {
+      "id": "PI-012",
+      "name": "code-execution-instruction",
+      "pattern": "(execute|run|eval|invoke) (this|the following|below) (code|script|command|payload)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Instructions directing AI to execute arbitrary code",
+      "category": "code-execution"
+    },
+    {
+      "id": "PI-013",
+      "name": "output-manipulation",
+      "pattern": "(always|never|must) (include|add|insert|append|prepend) .{0,50} (in every|to all|in all) (response|output|answer|reply)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Attempts to persistently modify AI output behavior",
+      "category": "output-manipulation"
+    },
+    {
+      "id": "PI-014",
+      "name": "jailbreak-keyword-cluster",
+      "pattern": "(DAN|do anything now|developer mode|unrestricted mode|god mode|sudo mode|admin mode)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Known jailbreak keywords and phrases targeting AI assistants",
+      "category": "jailbreak"
+    },
+    {
+      "id": "PI-015",
+      "name": "file-write-instruction",
+      "pattern": "(write|create|modify|overwrite) (a file|files|to disk|to filesystem).{0,50}(credentials|config|ssh|authorized_keys|\\.env)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Instructions to write sensitive files to the filesystem",
+      "category": "filesystem-attack"
+    },
+    {
+      "id": "PI-016",
+      "name": "social-engineering-urgency",
+      "pattern": "(URGENT|IMMEDIATELY|CRITICAL|DO THIS FIRST|BEFORE ANYTHING ELSE|TOP PRIORITY).{0,30}(ignore|skip|bypass|override)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Social engineering using urgency language combined with override instructions",
+      "category": "social-engineering"
+    },
+    {
+      "id": "PI-017",
+      "name": "context-window-pollution",
+      "pattern": "(<\\|im_start\\|>|<\\|im_end\\|>|<\\|system\\|>|<\\|user\\|>|<\\|assistant\\|>|\\[INST\\]|\\[\\/INST\\])",
+      "flags": "",
+      "severity": "CRITICAL",
+      "description": "Chat/prompt template tokens attempting to manipulate conversation structure",
+      "category": "template-injection"
+    },
+    {
+      "id": "PI-018",
+      "name": "disable-safety-features",
+      "pattern": "(disable|turn off|deactivate|remove) (code review|security check|safety|linting|validation|verification)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Instructions to disable safety or quality features",
+      "category": "safety-bypass"
+    },
+    {
+      "id": "PI-019",
+      "name": "obfuscated-instruction-hex",
+      "pattern": "(\\\\x[0-9a-fA-F]{2}){8,}",
+      "flags": "",
+      "severity": "WARNING",
+      "description": "Hex-encoded strings that may contain hidden instructions",
+      "category": "obfuscation"
+    },
+    {
+      "id": "PI-020",
+      "name": "multi-persona-attack",
+      "pattern": "(first persona|second persona|personality [A-Z]|mode [0-9]|switch to .{0,20} mode)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Multi-persona or mode-switching attacks on AI assistants",
+      "category": "role-hijacking"
+    },
+    {
+      "id": "PI-021",
+      "name": "delimiter-escape",
+      "pattern": "(</system>|</instructions>|</context>|\\[/SYSTEM\\]|END_OF_INSTRUCTIONS|---END---|</prompt>)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Attempts to close system prompt delimiters/tags to escape sandboxed context",
+      "category": "delimiter-injection"
+    },
+    {
+      "id": "PI-022",
+      "name": "tool-parameter-injection",
+      "pattern": "(tool_call|function_call|invoke|execute_tool|mcp_call|use_mcp_tool)\\s*[:(]",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Attempts to manipulate AI tool/MCP invocation parameters via injected text",
+      "category": "tool-manipulation"
+    },
+    {
+      "id": "PI-023",
+      "name": "mcp-server-hijack",
+      "pattern": "(mcp|model.context.protocol|tool_server|mcp_server).{0,40}(connect|invoke|call|execute|redirect)",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "MCP/skill architecture attack — attempts to redirect tool calls to attacker-controlled servers",
+      "category": "tool-manipulation"
+    },
+    {
+      "id": "PI-024",
+      "name": "token-marking-bypass",
+      "pattern": "(\\[DATA\\]|\\[USER_INPUT\\]|\\[UNTRUSTED\\]|<data>|<user_data>).{0,100}(ignore|override|system|instruction)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Attempts to bypass spotlighting/token-marking defenses by mimicking data delimiters",
+      "category": "delimiter-injection"
+    },
+    {
+      "id": "PI-025",
+      "name": "agent-cascade-attack",
+      "pattern": "(pass (this|these) instructions to|forward to|relay to|tell the (next|other) (agent|model|assistant))",
+      "flags": "i",
+      "severity": "CRITICAL",
+      "description": "Multi-agent cascade attack — propagates malicious instructions across agent boundaries",
+      "category": "agent-attack"
+    },
+    {
+      "id": "PI-026",
+      "name": "yaml-frontmatter-injection",
+      "pattern": "^---\\s*\\n[\\s\\S]*?(system_prompt|instructions|ai_behavior|llm_config|agent_mode)",
+      "flags": "m",
+      "severity": "WARNING",
+      "description": "Suspicious YAML front matter containing AI instruction keywords — potential metadata injection",
+      "category": "metadata-injection"
+    },
+    {
+      "id": "PI-027",
+      "name": "privilege-escalation-prompt",
+      "pattern": "(elevated privileges|admin access|root access|sudo|superuser|unrestricted access).{0,40}(grant|give|enable|activate)",
+      "flags": "i",
+      "severity": "WARNING",
+      "description": "Attempts to escalate AI agent privileges beyond intended scope",
+      "category": "privilege-escalation"
+    }
+  ]
+}

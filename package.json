@@ -1,0 +1,20 @@
+{
+  "name": "malcheck",
+  "version": "1.0.0",
+  "description": "Supply chain security scanner — detects malware in packages and prompt injections in repository files",
+  "main": "src/cli.ts",
+  "bin": {
+    "malcheck": "./src/cli.ts"
+  },
+  "scripts": {
+    "start": "bun run src/cli.ts",
+    "scan": "bun run src/cli.ts scan"
+  },
+  "keywords": ["security", "malware", "prompt-injection", "supply-chain", "scanner"],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

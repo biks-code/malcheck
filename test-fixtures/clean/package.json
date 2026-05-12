@@ -1,0 +1,11 @@
+{
+  "name": "my-awesome-project",
+  "version": "1.0.0",
+  "description": "Simple string utilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "build": "tsc"
+  },
+  "license": "MIT"
+}
