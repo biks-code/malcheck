@@ -1,21 +1,27 @@
 # malcheck
 
-Supply chain security scanner that detects **malware in packages** and **prompt injections targeting AI coding assistants**.
+Fast heuristic scanner that catches **obvious supply chain malware** and **prompt injections targeting AI coding assistants** in your repos.
 
-One command. Two seconds. Zero config.
+It won't catch sophisticated attackers. It will catch the lazy ones — which is [most of them](https://blog.phylum.io/the-state-of-software-supply-chain-security/).
 
 ```bash
 bun run src/cli.ts scan .
 ```
 
-## Why this exists
+## What this is (and isn't)
 
-Hackers are increasingly targeting open source with two attack vectors:
+**This IS:**
+- A zero-config tripwire that catches copy-paste malware (eval + encoded payloads, webhook exfil, postinstall curl)
+- The only CLI scanner for AI-assistant-targeted repo poisoning (.cursorrules, CLAUDE.md, copilot-instructions.md)
+- A pre-commit hook that stops accidental credential patterns from reaching your remote
+- A CI gate for low-effort supply chain attacks (which covers ~60% of real-world npm malware)
 
-1. **Malware in packages** — malicious postinstall scripts, credential stealers, reverse shells, crypto miners hidden in npm/PyPI packages
-2. **Prompt injection in repos** — hidden instructions in README files, `.cursorrules`, and YAML that manipulate AI coding assistants (Copilot, Claude Code, Cursor)
+**This is NOT:**
+- A replacement for Socket.dev, Snyk, or npm audit (those use AST analysis, dataflow tracking, behavioral sandboxing)
+- A security boundary you can rely on against targeted attacks
+- Able to catch variable indirection, string splitting, or multi-layer obfuscation
 
-No existing tool covers both. Existing scanners (Snyk, npm audit, Socket.dev) focus on known CVEs and require accounts. malcheck works offline, in 2 seconds, with zero setup.
+**Honest limitation:** Any attacker who reads these rules can bypass them. The value is catching attackers who don't bother.
 
 ## Installation
 
@@ -36,6 +42,9 @@ bun run src/cli.ts scan .
 # Scan a specific repo you cloned
 bun run src/cli.ts scan ../some-project
 
+# Install pre-commit hook (scans staged files before every commit)
+bun run src/cli.ts init
+
 # Get JSON output (for CI/CD pipelines)
 bun run src/cli.ts scan . --json
 
@@ -45,7 +54,9 @@ bun run src/cli.ts scan . --verbose
 
 ## What it detects
 
-### Prompt Injection (27 rules)
+### Prompt Injection (27 regex rules)
+
+Scans markdown, .cursorrules, CLAUDE.md, copilot-instructions.md, and YAML front matter.
 
 | Category | Examples |
 |----------|----------|
@@ -59,7 +70,9 @@ bun run src/cli.ts scan . --verbose
 | Multi-agent cascade | Instructions designed to propagate across agents |
 | YAML metadata injection | AI instructions hidden in front matter |
 
-### Malware Detection (27 rules)
+### Malware Detection (27 regex rules)
+
+Scans JS, TS, Python, shell scripts, and package.json install hooks.
 
 | Category | Examples |
 |----------|----------|
@@ -70,9 +83,36 @@ bun run src/cli.ts scan . --verbose
 | Reverse shells | net.Socket piped to /bin/sh |
 | Crypto miners | stratum+tcp, xmrig, mining pool connections |
 | Persistence | crontab, systemctl, registry Run keys |
-| Encrypted payloads | AES decryption with env var as key (event-stream style) |
+| Encrypted payloads | AES decryption with env var as key |
 | Conditional detonation | Code that only executes in specific environments |
 | Dropper patterns | Download binary + chmod +x + execute |
+
+### Limitations of regex detection
+
+These rules catch **literal patterns**. They will NOT catch:
+- `const e = eval; e(payload)` (variable indirection)
+- String concatenation across multiple lines
+- Dynamic property access (`obj['ev' + 'al']`)
+- Multi-file attacks where setup and detonation are separated
+
+For deeper analysis, use AST-based tools like [Socket.dev](https://socket.dev) or [Snyk](https://snyk.io) alongside this.
+
+## .malcheckignore
+
+Create a `.malcheckignore` file in your project root to suppress false positives:
+
+```
+# Ignore security research docs (they discuss attacks by nature)
+Prompt_Injection_and_Malware_Research.md
+
+# Ignore test fixtures (intentionally malicious samples)
+test-fixtures/
+
+# Ignore specific files
+docs/security-guide.md
+```
+
+Supports file paths and directory paths (with trailing `/`). One entry per line. Lines starting with `#` are comments.
 
 ## Exit Codes
 
@@ -93,7 +133,7 @@ bun run src/cli.ts scan . --verbose
 ```
 malcheck/
 ├── src/
-│   ├── cli.ts                    # CLI entry point
+│   ├── cli.ts                    # CLI entry point + init command
 │   ├── types.ts                  # TypeScript interfaces
 │   ├── scanners/
 │   │   ├── prompt-injection.ts   # Scans markdown/config for prompt attacks
@@ -106,6 +146,7 @@ malcheck/
 │       ├── terminal.ts           # Colored CLI output
 │       └── json.ts               # Structured JSON output
 ├── test-fixtures/                # Known-bad samples for testing
+├── .malcheckignore               # Suppresses false positives on own files
 ├── package.json
 └── tsconfig.json
 ```
@@ -117,10 +158,11 @@ malcheck/
 - [x] Malware pattern detection (27 rules)
 - [x] Invisible Unicode detection
 - [x] JSON output for CI/CD
-- [ ] `malcheck init` — auto-install git hooks
-- [ ] `--deep` flag — AI-powered semantic analysis
+- [x] `malcheck init` — git pre-commit hook
+- [x] `.malcheckignore` — suppress false positives
+- [ ] `--deep` flag — AST-based analysis for variable indirection and dataflow
+- [ ] `malcheck update` — pull latest rules from GitHub
 - [ ] Community trust network — crowdsourced package reputation
-- [ ] Browser extension for npmjs.com/PyPI
 - [ ] VS Code extension
 
 ## Contributing
